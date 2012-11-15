@@ -52,6 +52,9 @@ class MailUsername extends Controller
 
 	public function saveMemberEmail($strValue, $dc)
 	{
+		if($strValue) {
+			return;
+		}	
 		$this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($strValue, $dc->id);
 		
 		return $strValue;
