@@ -47,9 +47,12 @@ class MailUsername extends Controller
             $this->Input->setPost('username', $arrData['email']);
             $this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($arrData['email'], $intId);
 
-            // Fix the problem with versions (see #7)
             $memberModel = \MemberModel::findByPk($intId);
-            $memberModel->username = $arrData['email'];
+
+            // Fix the problem with versions (see #7)
+            if ($memberModel !== null) {
+                $memberModel->refresh();
+            }
         }
     }
 
