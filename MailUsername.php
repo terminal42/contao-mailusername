@@ -30,35 +30,35 @@
 
 class MailUsername extends Controller
 {
-	
-	public function __construct()
-	{
-		parent::__construct();
-		
-		$this->import('Database');
-	}
+    
+    public function __construct()
+    {
+        parent::__construct();
+        
+        $this->import('Database');
+    }
 
 
-	public function recordUsername($intId, &$arrData)
-	{
-	    if (!strlen($arrData['username']))
-	    {
-	    	$arrData['username'] = $arrData['email'];
-	    	$this->Input->setPost('username', $arrData['email']);
-	    	$this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($arrData['email'], $intId);
+    public function recordUsername($intId, &$arrData)
+    {
+        if (!strlen($arrData['username']))
+        {
+            $arrData['username'] = $arrData['email'];
+            $this->Input->setPost('username', $arrData['email']);
+            $this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($arrData['email'], $intId);
 
             // Fix the problem with versions (see #7)
             $memberModel = \MemberModel::findByPk($intId);
             $memberModel->username = $arrData['email'];
-	    }
-	}
+        }
+    }
 
 
-	public function saveMemberEmail($strValue, $dc)
-	{
-		$this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($strValue, $dc->id);
-		
-		return $strValue;
-	}
+    public function saveMemberEmail($strValue, $dc)
+    {
+        $this->Database->prepare("UPDATE tl_member SET username=? WHERE id=?")->execute($strValue, $dc->id);
+        
+        return $strValue;
+    }
 }
 
