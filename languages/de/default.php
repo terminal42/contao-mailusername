@@ -31,5 +31,4 @@
 /**
  * Miscellaneous
  */
-$GLOBALS['TL_LANG']['MSC']['username']      = 'E-Mail Adresse';
-
+$GLOBALS['TL_LANG']['MSC']['username'] = &$GLOBALS['TL_LANG']['MSC']['emailAddress'];
