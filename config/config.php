@@ -14,4 +14,4 @@
  * Hooks
  */
 array_insert($GLOBALS['TL_HOOKS']['createNewUser'], 0, array(array('MailUsername', 'recordUsername')));
-
+$GLOBALS['TL_HOOKS']['loadLanguageFile'][] = array('MailUsername', 'setUsernameLabel');

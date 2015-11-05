@@ -45,5 +45,12 @@ class MailUsername extends Controller
         
         return $strValue;
     }
-}
 
+
+    public function setUsernameLabel($name)
+    {
+        if ('default' === $name) {
+            $GLOBALS['TL_LANG']['MSC']['username'] = $GLOBALS['TL_LANG']['MSC']['emailAddress'];
+        }
+    }
+}
