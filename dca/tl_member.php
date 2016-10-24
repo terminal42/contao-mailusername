@@ -15,5 +15,6 @@
  */
 $GLOBALS['TL_DCA']['tl_member']['fields']['email']['save_callback'][] = array('MailUsername', 'saveMemberEmail');
 $GLOBALS['TL_DCA']['tl_member']['fields']['email']['eval']['unique'] = true;
+$GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['rgxp'] = 'email';
 $GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['disabled'] = true;
 $GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['mandatory'] = false;
