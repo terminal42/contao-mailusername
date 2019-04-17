@@ -15,6 +15,15 @@
  */
 $GLOBALS['TL_DCA']['tl_member']['fields']['email']['save_callback'][] = array('MailUsername', 'saveMemberEmail');
 $GLOBALS['TL_DCA']['tl_member']['fields']['email']['eval']['unique'] = true;
+$GLOBALS['TL_DCA']['tl_member']['fields']['email']['eval']['maxlength'] = 64;
 $GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['rgxp'] = 'email';
 $GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['disabled'] = true;
 $GLOBALS['TL_DCA']['tl_member']['fields']['username']['eval']['mandatory'] = false;
+
+if ('utf8mb4' === $GLOBALS['TL_CONFIG']['dbCharset']) {
+    // Contao >= 4.5
+    $GLOBALS['TL_DCA']['tl_member']['fields']['username']['sql'] = "varchar(64) COLLATE utf8mb4_unicode_ci NULL";
+}
+else {
+    $GLOBALS['TL_DCA']['tl_member']['fields']['username']['sql'] = "varchar(64) COLLATE utf8_general_ci NULL";
+}
