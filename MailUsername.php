@@ -39,6 +39,11 @@ class MailUsername extends Controller
 
     public function saveMemberEmail($strValue, $dc)
     {
+        // See #15
+        if ('' === $strValue) {
+            $strValue = null;
+        }
+
         \Database::getInstance()
             ->prepare("UPDATE tl_member SET username=? WHERE id=?")
             ->execute($strValue, $dc->id)
