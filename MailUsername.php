@@ -58,4 +58,15 @@ class MailUsername extends Controller
             $GLOBALS['TL_LANG']['MSC']['username'] = $GLOBALS['TL_LANG']['MSC']['emailAddress'];
         }
     }
+
+    public function setUsernamePostValue()
+    {
+        if (0 !== func_num_args()
+            || null !== Input::post('username')
+            || 0 !== strpos((string) Input::post('FORM_SUBMIT'), 'tl_registration')) {
+            return;
+        }
+
+        Input::setPost('username', Input::post('email'));
+    }
 }
