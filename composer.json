@@ -2,30 +2,46 @@
     "name": "terminal42/contao-mailusername",
     "description": "E-mail as username for Contao Open Source CMS",
     "keywords": ["contao", "email", "username"],
-    "type": "contao-module",
-    "license": "LGPL-3.0+",
-    "authors": [
-        {
-            "name":"terminal42 gmbh",
-            "homepage":"https://www.terminal42.ch"
-        }
-    ],
-    "require": {
-        "php":">=5.3.2",
-        "contao/core-bundle": "~3.2 | ~4.1",
-        "contao-community-alliance/composer-plugin": "~2.4 | ~3.0"
+    "type": "contao-bundle",
+    "license": "MIT",
+    "authors": [{
+        "name": "terminal42 gmbh",
+        "homepage": "https://www.terminal42.ch"
+    }],
+    "funding": [{
+        "type": "github",
+        "url": "https://github.com/terminal42"
+    }, {
+        "type": "other",
+        "url": "https://ko-fi.com/terminal42"
+    }],
+    "support": {
+        "issues": "https://github.com/terminal42/contao-mailusername/issues",
+        "source": "https://github.com/terminal42/contao-mailusername",
+        "forum": "https://community.contao.org"
     },
-    "replace": {
-        "contao-legacy/mailusername": "self.version"
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "contao/core-bundle": "^4.9"
+    },
+    "require-dev": {
+        "contao/manager-plugin": "^2.0",
+        "contao/easy-coding-standard": "^3.0"
+    },
+    "conflict": {
+        "contao/manager-plugin": "<2.0 || >=3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Terminal42\\MailusernameBundle\\": "src/"
+        }
     },
     "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
-        },
-        "contao": {
-            "sources":{
-                "": "system/modules/mailusername"
-            }
-        }
+        "contao-manager-plugin": "Terminal42\\MailusernameBundle\\ContaoManager\\Plugin"
+    },
+    "scripts": {
+        "cs-fixer": [
+            "vendor/bin/ecs check src/ --fix --ansi"
+        ]
     }
 }
