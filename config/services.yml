@@ -7,3 +7,4 @@ services:
     Terminal42\MailusernameBundle\EventListener\MailUsernameListener:
         arguments:
             - '@database_connection'
+            - '@translator'

@@ -9,14 +9,17 @@ use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Input;
 use Contao\MemberModel;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MailUsernameListener
 {
     private Connection $connection;
+    private TranslatorInterface $translator;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, TranslatorInterface $translator)
     {
         $this->connection = $connection;
+        $this->translator = $translator;
     }
 
     /**
@@ -53,6 +56,13 @@ class MailUsernameListener
         // See #15
         if ('' === $strValue) {
             $strValue = null;
+        }
+
+        // Check if the username already exists
+        $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+
+        if (false !== $exists) {
+            throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
         }
 
         $this->connection->update(
