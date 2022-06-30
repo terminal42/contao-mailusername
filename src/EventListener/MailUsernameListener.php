@@ -58,18 +58,24 @@ class MailUsernameListener
             $strValue = null;
         }
 
-        // Check if the username already exists
-        $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+        try {
+            $this->connection->executeQuery('LOCK TABLES tl_member WRITE');
 
-        if (false !== $exists) {
-            throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
+            // Check if the username already exists
+            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+
+            if (false !== $exists) {
+                throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
+            }
+
+            $this->connection->update(
+                'tl_member',
+                ['username' => $strValue],
+                ['id' => $dc->id]
+            );
+        } finally {
+            $this->connection->executeQuery('UNLOCK TABLES');
         }
-
-        $this->connection->update(
-            'tl_member',
-            ['username' => $strValue],
-            ['id' => $dc->id]
-        );
 
         return $strValue;
     }
