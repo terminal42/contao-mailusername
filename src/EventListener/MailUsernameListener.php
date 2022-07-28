@@ -62,7 +62,7 @@ class MailUsernameListener
             $this->connection->executeQuery('LOCK TABLES tl_member WRITE');
 
             // Check if the username already exists
-            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ? AND id != ?', [$strValue, $dc->id]);
 
             if (false !== $exists) {
                 throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
