@@ -6,6 +6,8 @@ namespace Terminal42\MailusernameBundle\EventListener;
 
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\DataContainer;
+use Contao\FrontendUser;
 use Contao\Input;
 use Contao\MemberModel;
 use Doctrine\DBAL\Connection;
@@ -50,11 +52,12 @@ class MailUsernameListener
 
     /**
      * @Callback(table="tl_member", target="fields.email.save")
+     *
+     * @param DataContainer|FrontendUser|null $dc
      */
     public function saveMemberEmail($strValue, $dc)
     {
-        // See #15
-        if ('' === $strValue) {
+        if ('' === $strValue || null === $dc) {
             $strValue = null;
         }
 
