@@ -57,7 +57,7 @@ class MailUsernameListener
      */
     public function saveMemberEmail($strValue, $dc)
     {
-        if ('' === $strValue || null === $dc) {
+        if ('' === $strValue) {
             $strValue = null;
         }
 
@@ -65,7 +65,7 @@ class MailUsernameListener
             $this->connection->executeQuery('LOCK TABLES tl_member WRITE');
 
             // Check if the username already exists
-            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ? AND id != ?', [$strValue, $dc->id]);
+            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ? AND id != ?', [$strValue, null !== $dc ? $dc->id : null]);
 
             if (false !== $exists) {
                 throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
