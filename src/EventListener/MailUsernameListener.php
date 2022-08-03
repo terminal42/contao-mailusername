@@ -71,11 +71,13 @@ class MailUsernameListener
                 throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
             }
 
-            $this->connection->update(
-                'tl_member',
-                ['username' => $strValue],
-                ['id' => $dc->id]
-            );
+            if (null !== $dc) {
+                $this->connection->update(
+                    'tl_member',
+                    ['username' => $strValue],
+                    ['id' => $dc->id]
+                );
+            }
         } finally {
             $this->connection->executeQuery('UNLOCK TABLES');
         }
