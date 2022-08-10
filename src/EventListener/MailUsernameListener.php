@@ -36,11 +36,11 @@ class MailUsernameListener
         $arrData['username'] = $arrData['email'];
         Input::setPost('username', $arrData['email']);
 
-        $this->connection->update(
-            'tl_member',
-            ['username' => $arrData['email']],
-            ['id' => $intId]
-        );
+        try {
+            $this->saveMemberEmail($arrData['email'], (object) ['id' => $intId]);
+        } catch (\RuntimeException $e) {
+            // Duplicate email/username, but we can't handle it here :-(
+        }
 
         $memberModel = MemberModel::findByPk($intId);
 
@@ -53,29 +53,35 @@ class MailUsernameListener
     /**
      * @Callback(table="tl_member", target="fields.email.save")
      *
-     * @param DataContainer|FrontendUser|null $dc
+     * @param DataContainer|FrontendUser|object|null $dc
      */
     public function saveMemberEmail($strValue, $dc)
     {
-        if ('' === $strValue || null === $dc) {
-            $strValue = null;
+        // Ignore the save_callback in ModuleRegistration (no DC/User object given)
+        if (null === $dc) {
+            return $strValue;
+        }
+
+        // Set the username to NULL if email is empty
+        if ('' === $strValue) {
+            $this->connection->update('tl_member', ['username' => null], ['id' => $dc->id]);
+            return $strValue;
         }
 
         try {
             $this->connection->executeQuery('LOCK TABLES tl_member WRITE');
 
             // Check if the username already exists
-            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ? AND id != ?', [$strValue, $dc->id]);
+            $exists = $this->connection->fetchOne(
+                'SELECT TRUE FROM tl_member WHERE username = ? AND id != ?',
+                [$strValue, $dc->id]
+            );
 
             if (false !== $exists) {
-                throw new \Exception($this->translator->trans('ERR.unique', [], 'contao_default'));
+                throw new \RuntimeException($this->translator->trans('ERR.unique', [], 'contao_default'));
             }
 
-            $this->connection->update(
-                'tl_member',
-                ['username' => $strValue],
-                ['id' => $dc->id]
-            );
+            $this->connection->update('tl_member', ['username' => $strValue], ['id' => $dc->id]);
         } finally {
             $this->connection->executeQuery('UNLOCK TABLES');
         }
