@@ -36,12 +36,7 @@ class MailUsernameListener
         $arrData['username'] = $arrData['email'];
         Input::setPost('username', $arrData['email']);
 
-        try {
-            $this->saveMemberEmail($arrData['email'], (object) ['id' => $intId]);
-        } catch (\RuntimeException $e) {
-            // Duplicate email/username, but we can't handle it here :-(
-        }
-
+        $this->saveMemberEmail($arrData['email'], (object) ['id' => $intId]);
         $memberModel = MemberModel::findByPk($intId);
 
         // Fix the problem with versions (see #7)
@@ -57,8 +52,14 @@ class MailUsernameListener
      */
     public function saveMemberEmail($strValue, $dc)
     {
-        // Ignore the save_callback in ModuleRegistration (no DC/User object given)
+        // Use the save_callback in ModuleRegistration to prevent duplicate usernames in registration
         if (null === $dc) {
+            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+
+            if (false !== $exists) {
+                throw new \RuntimeException($this->translator->trans('ERR.unique', [], 'contao_default'));
+            }
+
             return $strValue;
         }
 
