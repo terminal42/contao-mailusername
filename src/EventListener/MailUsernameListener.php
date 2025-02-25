@@ -16,6 +16,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class MailUsernameListener
 {
     private Connection $connection;
+
     private TranslatorInterface $translator;
 
     public function __construct(Connection $connection, TranslatorInterface $translator)
@@ -25,9 +26,11 @@ class MailUsernameListener
     }
 
     /**
+     * @param int|string $intId
+     *
      * @Hook("createNewUser", priority=100)
      */
-    public function recordUsername($intId, &$arrData): void
+    public function recordUsername($intId, array &$arrData): void
     {
         if (!empty($arrData['username'])) {
             return;
@@ -37,7 +40,7 @@ class MailUsernameListener
         Input::setPost('username', $arrData['email']);
 
         $this->saveMemberEmail($arrData['email'], (object) ['id' => $intId]);
-        $memberModel = MemberModel::findByPk($intId);
+        $memberModel = MemberModel::findById($intId);
 
         // Fix the problem with versions (see #7)
         if (null !== $memberModel) {
@@ -48,7 +51,10 @@ class MailUsernameListener
     /**
      * @Callback(table="tl_member", target="fields.email.save")
      *
+     * @param string                                 $strValue
      * @param DataContainer|FrontendUser|object|null $dc
+     *
+     * @return string
      */
     public function saveMemberEmail($strValue, $dc)
     {
@@ -66,6 +72,7 @@ class MailUsernameListener
         // Set the username to NULL if email is empty
         if ('' === $strValue) {
             $this->connection->update('tl_member', ['username' => null], ['id' => $dc->id]);
+
             return $strValue;
         }
 
@@ -75,7 +82,7 @@ class MailUsernameListener
             // Check if the username already exists
             $exists = $this->connection->fetchOne(
                 'SELECT TRUE FROM tl_member WHERE username = ? AND id != ?',
-                [$strValue, $dc->id]
+                [$strValue, $dc->id],
             );
 
             if (false !== $exists) {
@@ -93,7 +100,7 @@ class MailUsernameListener
     /**
      * @Hook("loadLanguageFile")
      */
-    public function setUsernameLabel($name): void
+    public function setUsernameLabel(string $name): void
     {
         if ('default' === $name) {
             $GLOBALS['TL_LANG']['MSC']['username'] = $GLOBALS['TL_LANG']['MSC']['emailAddress'];
@@ -108,7 +115,7 @@ class MailUsernameListener
         if (
             0 !== \func_num_args()
             || null !== Input::post('username')
-            || 0 !== strpos((string) Input::post('FORM_SUBMIT'), 'tl_registration')
+            || !str_starts_with((string) Input::post('FORM_SUBMIT'), 'tl_registration')
         ) {
             return;
         }
