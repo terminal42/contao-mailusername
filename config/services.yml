@@ -2,7 +2,6 @@ services:
     _defaults:
         autoconfigure: true
         autowire: false
-        public: false
 
     Terminal42\MailusernameBundle\EventListener\MailUsernameListener:
         arguments:
