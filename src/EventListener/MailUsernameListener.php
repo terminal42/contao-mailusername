@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Terminal42\MailusernameBundle\EventListener;
 
-use Contao\CoreBundle\ServiceAnnotation\Callback;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
-use Contao\DataContainer;
-use Contao\FrontendUser;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\Input;
 use Contao\MemberModel;
 use Doctrine\DBAL\Connection;
@@ -15,65 +13,49 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MailUsernameListener
 {
-    private Connection $connection;
-
-    private TranslatorInterface $translator;
-
-    public function __construct(Connection $connection, TranslatorInterface $translator)
-    {
-        $this->connection = $connection;
-        $this->translator = $translator;
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly TranslatorInterface $translator,
+    ) {
     }
 
-    /**
-     * @param int|string $intId
-     *
-     * @Hook("createNewUser", priority=100)
-     */
-    public function recordUsername($intId, array &$arrData): void
+    #[AsHook('createNewUser', priority: 100)]
+    public function recordUsername(int|string $id, array &$data): void
     {
-        if (!empty($arrData['username'])) {
+        if (!empty($data['username'])) {
             return;
         }
 
-        $arrData['username'] = $arrData['email'];
-        Input::setPost('username', $arrData['email']);
+        $data['username'] = $data['email'];
+        Input::setPost('username', $data['email']);
 
-        $this->saveMemberEmail($arrData['email'], (object) ['id' => $intId]);
-        $memberModel = MemberModel::findById($intId);
+        $this->saveMemberEmail($data['email'], (object) ['id' => $id]);
 
         // Fix the problem with versions (see #7)
-        if (null !== $memberModel) {
+        if (null !== ($memberModel = MemberModel::findById($id))) {
             $memberModel->refresh();
         }
     }
 
-    /**
-     * @Callback(table="tl_member", target="fields.email.save")
-     *
-     * @param string                                 $strValue
-     * @param DataContainer|FrontendUser|object|null $dc
-     *
-     * @return string
-     */
-    public function saveMemberEmail($strValue, $dc)
+    #[AsCallback('tl_member', 'fields.email.save')]
+    public function saveMemberEmail(string|null $value, object|null $dc): string|null
     {
         // Use the save_callback in ModuleRegistration to prevent duplicate usernames in registration
         if (null === $dc) {
-            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$strValue]);
+            $exists = $this->connection->fetchOne('SELECT TRUE FROM tl_member WHERE username = ?', [$value]);
 
             if (false !== $exists) {
                 throw new \RuntimeException($this->translator->trans('ERR.unique', [], 'contao_default'));
             }
 
-            return $strValue;
+            return $value;
         }
 
         // Set the username to NULL if email is empty
-        if ('' === $strValue) {
+        if (!$value) {
             $this->connection->update('tl_member', ['username' => null], ['id' => $dc->id]);
 
-            return $strValue;
+            return $value;
         }
 
         try {
@@ -82,24 +64,22 @@ class MailUsernameListener
             // Check if the username already exists
             $exists = $this->connection->fetchOne(
                 'SELECT TRUE FROM tl_member WHERE username = ? AND id != ?',
-                [$strValue, $dc->id],
+                [$value, $dc->id],
             );
 
             if (false !== $exists) {
                 throw new \RuntimeException($this->translator->trans('ERR.unique', [], 'contao_default'));
             }
 
-            $this->connection->update('tl_member', ['username' => $strValue], ['id' => $dc->id]);
+            $this->connection->update('tl_member', ['username' => $value], ['id' => $dc->id]);
         } finally {
             $this->connection->executeQuery('UNLOCK TABLES');
         }
 
-        return $strValue;
+        return $value;
     }
 
-    /**
-     * @Hook("loadLanguageFile")
-     */
+    #[AsHook('loadLanguageFile')]
     public function setUsernameLabel(string $name): void
     {
         if ('default' === $name) {
@@ -107,9 +87,7 @@ class MailUsernameListener
         }
     }
 
-    /**
-     * @Callback(table="tl_member", target="config.onload")
-     */
+    #[AsCallback('tl_member', 'config.onload')]
     public function setUsernamePostValue(): void
     {
         if (
