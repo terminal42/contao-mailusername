@@ -32,9 +32,7 @@ class MailUsernameListener
         $this->saveMemberEmail($data['email'], (object) ['id' => $id]);
 
         // Fix the problem with versions (see #7)
-        if (null !== ($memberModel = MemberModel::findById($id))) {
-            $memberModel->refresh();
-        }
+        MemberModel::findById($id)?->refresh();
     }
 
     #[AsCallback('tl_member', 'fields.email.save')]
